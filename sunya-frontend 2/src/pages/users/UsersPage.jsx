@@ -114,7 +114,7 @@ const UsersPage = () => {
             {filteredUsers.length} user{filteredUsers.length === 1 ? "" : "s"}
           </p>
         </div>
-        {canManage && <Button onClick={() => navigate("/users/new")}>Add user</Button>}
+        {canManage && <Button onClick={() => navigate("/users/create")}>Add user</Button>}
       </div>
 
       {error && (

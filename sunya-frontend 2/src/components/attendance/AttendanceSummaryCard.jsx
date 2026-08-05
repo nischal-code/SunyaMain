@@ -1,29 +1,15 @@
 import Card from "../common/Card";
 
-const STAT_CONFIG = [
+const DEFAULT_STAT_CONFIG = [
   { key: "presentDays", label: "Present", color: "text-green-600" },
   { key: "lateDays", label: "Late", color: "text-amber-600" },
   { key: "absentDays", label: "Absent", color: "text-red-600" },
   { key: "onLeaveDays", label: "On Leave", color: "text-primary-600" },
 ];
 
-/**
- * AttendanceSummaryCard
- * Compact stat grid summarizing a period's attendance — backed by
- * GET /attendance/me/summary (self) or an equivalent per-user summary
- * for admins/managers. Purely presentational; the parent fetches and
- * passes the summary object down.
- *
- * Props:
- *  - summary:   { presentDays, lateDays, absentDays, onLeaveDays,
- *      totalWorkingHours, averageWorkingHours } — optional
- *  - title:     string — default "Attendance Summary"
- *  - subtitle:  string — e.g. the month/year label
- *  - isLoading: bool
- *  - className: string
- */
 const AttendanceSummaryCard = ({
   summary,
+  statConfig = DEFAULT_STAT_CONFIG,
   title = "Attendance Summary",
   subtitle,
   isLoading = false,
@@ -32,7 +18,7 @@ const AttendanceSummaryCard = ({
   return (
     <Card title={title} subtitle={subtitle} className={className}>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {STAT_CONFIG.map((stat) => (
+        {statConfig.map((stat) => (
           <div key={stat.key} className="text-center">
             {isLoading ? (
               <div className="mx-auto h-7 w-10 animate-pulse rounded bg-gray-100" />

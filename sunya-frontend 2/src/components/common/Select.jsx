@@ -51,11 +51,10 @@ const Select = forwardRef(
             name={name}
             aria-invalid={error ? "true" : "false"}
             defaultValue={placeholder && rest.value === undefined ? "" : undefined}
-            className={`w-full appearance-none rounded-lg border bg-white px-3.5 py-2.5 pr-9 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 ${
-              error
+            className={`w-full appearance-none rounded-lg border bg-white dark:bg-slate-800 px-3.5 py-2.5 pr-9 text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-slate-900 disabled:text-gray-400 ${error
                 ? "border-red-400 focus:border-red-400"
-                : "border-gray-300 focus:border-primary-500"
-            } ${className}`}
+                : "border-gray-300 dark:border-slate-700 focus:border-primary-500"
+              } ${className}`}
             {...rest}
           >
             {placeholder && (

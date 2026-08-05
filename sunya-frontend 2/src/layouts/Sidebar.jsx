@@ -220,8 +220,8 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const content = (
     <div className="flex h-full flex-col">
       <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-gray-100 px-5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white">
-          S
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white overflow-hidden">
+          <img src="/logo.svg" alt="" />
         </span>
         <span className="text-base font-semibold text-gray-900">Sunya</span>
       </div>

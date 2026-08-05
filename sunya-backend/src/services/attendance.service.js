@@ -180,13 +180,24 @@ export const getMonthlySummary = async (userId, referenceDate = new Date()) => {
   }, {});
 
   const totals = byStatus?.totals[0] || { daysRecorded: 0, totalHours: 0 };
+  const totalWorkingHours = Number((totals.totalHours || 0).toFixed(2));
+  const averageWorkingHours = totals.daysRecorded
+    ? Number((totalWorkingHours / totals.daysRecorded).toFixed(2))
+    : 0;
 
   return {
     month: start.getMonth() + 1,
     year: start.getFullYear(),
     daysRecorded: totals.daysRecorded,
-    totalHours: Number((totals.totalHours || 0).toFixed(2)),
+    totalHours: totalWorkingHours,
     counts,
+    // Flat fields consumed by AttendanceSummaryCard on the frontend.
+    presentDays: counts[ATTENDANCE_STATUS.PRESENT] || 0,
+    lateDays: counts[ATTENDANCE_STATUS.LATE] || 0,
+    absentDays: counts[ATTENDANCE_STATUS.ABSENT] || 0,
+    onLeaveDays: counts[ATTENDANCE_STATUS.LEAVE] || 0,
+    totalWorkingHours,
+    averageWorkingHours,
   };
 };
 

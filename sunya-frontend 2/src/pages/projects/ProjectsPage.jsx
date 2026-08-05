@@ -81,7 +81,7 @@ const ProjectsPage = () => {
             {total} project{total === 1 ? "" : "s"}
           </p>
         </div>
-        {canManage && <Button onClick={() => navigate("/projects/new")}>New project</Button>}
+        {canManage && <Button onClick={() => navigate("/projects/create")}>New project</Button>}
       </div>
 
       {error && (

@@ -49,7 +49,7 @@ const SearchBar = ({ value, onChange, onSearch, placeholder = "Search...", class
         value={currentValue}
         onChange={(event) => updateValue(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-9 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+        className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 pl-10 pr-9 text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
       />
 
       {currentValue && (

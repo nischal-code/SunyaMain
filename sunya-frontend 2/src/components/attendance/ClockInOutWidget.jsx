@@ -67,7 +67,6 @@ const ClockInOutWidget = ({ onChange, className = "" }) => {
       isMounted = false;
       void isMounted;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClockIn = async () => {
@@ -100,8 +99,8 @@ const ClockInOutWidget = ({ onChange, className = "" }) => {
     }
   };
 
-  const hasClockedIn = Boolean(today?.checkIn);
-  const hasClockedOut = Boolean(today?.checkOut);
+  const hasClockedIn = Boolean(today?.clockIn);
+  const hasClockedOut = Boolean(today?.clockOut);
 
   return (
     <AttendanceCard className={className} bodyClassName="relative">
@@ -133,19 +132,19 @@ const ClockInOutWidget = ({ onChange, className = "" }) => {
             <div className="flex items-center gap-6 text-sm">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                  Check In
+                  clock In
                 </p>
                 <p className="mt-0.5 font-semibold text-slate-900 dark:text-slate-100">
-                  {formatTime(today?.checkIn)}
+                  {formatTime(today?.clockIn)}
                 </p>
               </div>
               <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                  Check Out
+                  clock Out
                 </p>
                 <p className="mt-0.5 font-semibold text-slate-900 dark:text-slate-100">
-                  {formatTime(today?.checkOut)}
+                  {formatTime(today?.clockOut)}
                 </p>
               </div>
             </div>
