@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import cloudinary from "../config/cloudinary.js";
+import { ACTIVITY_MODULE, ACTIVITY_ACTION } from "../utils/constants.js";
+import { logActivity } from "../services/activityLog.service.js";
 
 // Get own profile
 export const getProfile = asyncHandler(async (req, res) => {
@@ -21,6 +23,14 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(req.user._id, updates, {
     new: true,
     runValidators: true,
+  });
+
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROFILE_UPDATED,
+    module: ACTIVITY_MODULE.USER,
+    resourceId: req.user._id,
+    req,
   });
 
   return sendResponse(res, 200, "Profile updated successfully", { user: user.toSafeObject() });
@@ -42,6 +52,14 @@ export const updateProfilePicture = asyncHandler(async (req, res) => {
     publicId: req.file.filename,
   };
   await user.save();
+
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROFILE_PICTURE_UPDATED,
+    module: ACTIVITY_MODULE.USER,
+    resourceId: req.user._id,
+    req,
+  });
 
   return sendResponse(res, 200, "Profile picture updated successfully", {
     profilePicture: user.profilePicture,
@@ -82,6 +100,14 @@ export const updateUserRole = asyncHandler(async (req, res) => {
   user.role = role;
   await user.save();
 
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.USER_ROLE_UPDATED,
+    module: ACTIVITY_MODULE.USER,
+    resourceId: user._id,
+    req,
+  });
+
   return sendResponse(res, 200, "User role updated successfully", { user: user.toSafeObject() });
 });
 
@@ -94,6 +120,14 @@ export const toggleUserActiveStatus = asyncHandler(async (req, res) => {
 
   user.isActive = !user.isActive;
   await user.save();
+
+  await logActivity({
+    user: req.user._id,
+    action: user.isActive ? ACTIVITY_ACTION.USER_ACTIVATED : ACTIVITY_ACTION.USER_DEACTIVATED,
+    module: ACTIVITY_MODULE.USER,
+    resourceId: user._id,
+    req,
+  });
 
   return sendResponse(res, 200, `User ${user.isActive ? "activated" : "deactivated"} successfully`, {
     user: user.toSafeObject(),

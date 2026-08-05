@@ -180,24 +180,13 @@ export const getMonthlySummary = async (userId, referenceDate = new Date()) => {
   }, {});
 
   const totals = byStatus?.totals[0] || { daysRecorded: 0, totalHours: 0 };
-  const totalWorkingHours = Number((totals.totalHours || 0).toFixed(2));
-  const averageWorkingHours = totals.daysRecorded
-    ? Number((totalWorkingHours / totals.daysRecorded).toFixed(2))
-    : 0;
 
   return {
     month: start.getMonth() + 1,
     year: start.getFullYear(),
     daysRecorded: totals.daysRecorded,
-    totalHours: totalWorkingHours,
+    totalHours: Number((totals.totalHours || 0).toFixed(2)),
     counts,
-    // Flat fields consumed by AttendanceSummaryCard on the frontend.
-    presentDays: counts[ATTENDANCE_STATUS.PRESENT] || 0,
-    lateDays: counts[ATTENDANCE_STATUS.LATE] || 0,
-    absentDays: counts[ATTENDANCE_STATUS.ABSENT] || 0,
-    onLeaveDays: counts[ATTENDANCE_STATUS.LEAVE] || 0,
-    totalWorkingHours,
-    averageWorkingHours,
   };
 };
 
@@ -227,8 +216,13 @@ export const createManualAttendance = async ({ userId, date, status, checkIn, ch
 
   const day = getStartOfDay(new Date(date));
 
+  const parsedClockIn = checkIn ? combineDateAndTime(day, checkIn) : null;
+  const parsedClockOut = checkOut ? combineDateAndTime(day, checkOut) : null;
+
   const totalHours =
-    checkIn && checkOut ? Number(((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60)).toFixed(2)) : 0;
+    parsedClockIn && parsedClockOut
+      ? Number(((parsedClockOut - parsedClockIn) / (1000 * 60 * 60)).toFixed(2))
+      : 0;
 
   const record = await Attendance.findOneAndUpdate(
     { user: userId, date: day },
@@ -236,8 +230,8 @@ export const createManualAttendance = async ({ userId, date, status, checkIn, ch
       user: userId,
       date: day,
       status,
-      clockIn: checkIn ? new Date(checkIn) : null,
-      clockOut: checkOut ? new Date(checkOut) : null,
+      clockIn: parsedClockIn,
+      clockOut: parsedClockOut,
       totalHours,
       notes: remarks ?? null,
     },
@@ -256,8 +250,8 @@ export const updateAttendanceRecord = async (attendanceId, { status, checkIn, ch
   if (!record) throw new ApiError(404, "Attendance record not found");
 
   if (status !== undefined) record.status = status;
-  if (checkIn !== undefined) record.clockIn = checkIn ? new Date(checkIn) : null;
-  if (checkOut !== undefined) record.clockOut = checkOut ? new Date(checkOut) : null;
+  if (checkIn !== undefined) record.clockIn = checkIn ? combineDateAndTime(record.date, checkIn) : null;
+  if (checkOut !== undefined) record.clockOut = checkOut ? combineDateAndTime(record.date, checkOut) : null;
   if (remarks !== undefined) record.notes = remarks;
 
   if (record.clockIn && record.clockOut) {

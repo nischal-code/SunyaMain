@@ -12,8 +12,9 @@ import {
   verifyRefreshToken,
   hashToken,
 } from "../services/token.service.js";
-import { OTP_PURPOSE } from "../utils/constants.js";
+import { OTP_PURPOSE, ACTIVITY_MODULE, ACTIVITY_ACTION } from "../utils/constants.js";
 import { env } from "../config/env.js";
+import { logActivity } from "../services/activityLog.service.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -62,6 +63,14 @@ export const register = asyncHandler(async (req, res) => {
 
   await createAndSendOTP(user._id, user.email, OTP_PURPOSE.EMAIL_VERIFICATION);
 
+  await logActivity({
+    user: user._id,
+    action: ACTIVITY_ACTION.REGISTER,
+    module: ACTIVITY_MODULE.AUTH,
+    resourceId: user._id,
+    req,
+  });
+
   return sendResponse(res, 201, "Registration successful. Please verify your email with the OTP sent.", {
     userId: user._id,
     email: user.email,
@@ -105,6 +114,14 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   user.isEmailVerified = true;
   await user.save();
 
+  await logActivity({
+    user: user._id,
+    action: ACTIVITY_ACTION.EMAIL_VERIFIED,
+    module: ACTIVITY_MODULE.AUTH,
+    resourceId: user._id,
+    req,
+  });
+
   return sendResponse(res, 200, "Email verified successfully");
 });
 
@@ -146,6 +163,14 @@ export const login = asyncHandler(async (req, res) => {
   res
     .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
     .cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: env.REFRESH_TOKEN_EXPIRY_MS });
+
+  await logActivity({
+    user: user._id,
+    action: ACTIVITY_ACTION.LOGIN,
+    module: ACTIVITY_MODULE.AUTH,
+    resourceId: user._id,
+    req,
+  });
 
   return sendResponse(res, 200, "Login successful", {
     user: user.toSafeObject(),
@@ -204,7 +229,20 @@ export const logout = asyncHandler(async (req, res) => {
 
   if (incomingRefreshToken) {
     const tokenHash = hashToken(incomingRefreshToken);
-    await Session.findOneAndUpdate({ refreshTokenHash: tokenHash }, { isValid: false });
+    const session = await Session.findOneAndUpdate(
+      { refreshTokenHash: tokenHash },
+      { isValid: false }
+    );
+
+    if (session) {
+      await logActivity({
+        user: session.user,
+        action: ACTIVITY_ACTION.LOGOUT,
+        module: ACTIVITY_MODULE.AUTH,
+        resourceId: session.user,
+        req,
+      });
+    }
   }
 
   res.clearCookie("accessToken", cookieOptions).clearCookie("refreshToken", cookieOptions);
@@ -221,6 +259,14 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   // Always return a generic success message to avoid leaking which emails are registered
   if (user) {
     await createAndSendOTP(user._id, user.email, OTP_PURPOSE.PASSWORD_RESET);
+
+    await logActivity({
+      user: user._id,
+      action: ACTIVITY_ACTION.PASSWORD_RESET_REQUESTED,
+      module: ACTIVITY_MODULE.AUTH,
+      resourceId: user._id,
+      req,
+    });
   }
 
   return sendResponse(res, 200, "If an account with that email exists, an OTP has been sent");
@@ -262,6 +308,14 @@ export const resetPassword = asyncHandler(async (req, res) => {
   // Invalidate all existing sessions for security
   await Session.updateMany({ user: user._id }, { isValid: false });
 
+  await logActivity({
+    user: user._id,
+    action: ACTIVITY_ACTION.PASSWORD_RESET,
+    module: ACTIVITY_MODULE.AUTH,
+    resourceId: user._id,
+    req,
+  });
+
   return sendResponse(res, 200, "Password reset successfully. Please log in again.");
 });
 
@@ -279,6 +333,14 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   // Invalidate all other sessions for security
   await Session.updateMany({ user: user._id }, { isValid: false });
+
+  await logActivity({
+    user: user._id,
+    action: ACTIVITY_ACTION.PASSWORD_CHANGED,
+    module: ACTIVITY_MODULE.AUTH,
+    resourceId: user._id,
+    req,
+  });
 
   return sendResponse(res, 200, "Password changed successfully. Please log in again.");
 });

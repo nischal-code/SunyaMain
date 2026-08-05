@@ -2,7 +2,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import * as projectService from "../services/project.service.js";
-import { ROLES } from "../utils/constants.js";
+import { ROLES, ACTIVITY_MODULE, ACTIVITY_ACTION } from "../utils/constants.js";
+import { logActivity } from "../services/activityLog.service.js";
 
 const ADMIN_TIER_ROLES = [ROLES.SUPER_ADMIN, ROLES.ADMIN];
 const isAdminTier = (role) => ADMIN_TIER_ROLES.includes(role);
@@ -11,16 +12,37 @@ const isAdminTier = (role) => ADMIN_TIER_ROLES.includes(role);
 
 export const createProject = asyncHandler(async (req, res) => {
   const project = await projectService.createProject(req.body, req.user._id);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_CREATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: project._id,
+    req,
+  });
   return sendResponse(res, 201, "Project created successfully", { project });
 });
 
 export const updateProject = asyncHandler(async (req, res) => {
   const project = await projectService.updateProject(req.params.projectId, req.body, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_UPDATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Project updated successfully", { project });
 });
 
 export const deleteProject = asyncHandler(async (req, res) => {
   await projectService.deleteProject(req.params.projectId, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_DELETED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Project deleted successfully", null);
 });
 
@@ -28,6 +50,13 @@ export const deleteProject = asyncHandler(async (req, res) => {
 
 export const assignTeam = asyncHandler(async (req, res) => {
   const project = await projectService.assignTeam(req.params.projectId, req.body.team, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_TEAM_ASSIGNED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Team assigned successfully", { project });
 });
 
@@ -37,6 +66,13 @@ export const assignProjectManager = asyncHandler(async (req, res) => {
     req.body.projectManager,
     req.user
   );
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_MANAGER_ASSIGNED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Project manager assigned successfully", { project });
 });
 
@@ -44,21 +80,49 @@ export const assignProjectManager = asyncHandler(async (req, res) => {
 
 export const setBudget = asyncHandler(async (req, res) => {
   const project = await projectService.setBudget(req.params.projectId, req.body, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_BUDGET_UPDATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Budget updated successfully", { project });
 });
 
 export const setDeadline = asyncHandler(async (req, res) => {
   const project = await projectService.setDeadline(req.params.projectId, req.body.deadline, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_DEADLINE_UPDATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Deadline updated successfully", { project });
 });
 
 export const changeStatus = asyncHandler(async (req, res) => {
   const project = await projectService.changeStatus(req.params.projectId, req.body.status, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_STATUS_CHANGED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Project status updated successfully", { project });
 });
 
 export const updateProgress = asyncHandler(async (req, res) => {
   const project = await projectService.updateProgress(req.params.projectId, req.user, req.body.progress);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_PROGRESS_UPDATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Project progress updated successfully", { project });
 });
 
@@ -67,12 +131,26 @@ export const updateProgress = asyncHandler(async (req, res) => {
 export const addFiles = asyncHandler(async (req, res) => {
   if (!req.files?.length) throw new ApiError(400, "No files uploaded");
   const project = await projectService.addFiles(req.params.projectId, req.user, req.files);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_FILES_ADDED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Files uploaded successfully", { project });
 });
 
 export const addDeliverables = asyncHandler(async (req, res) => {
   if (!req.files?.length) throw new ApiError(400, "No files uploaded");
   const project = await projectService.addDeliverables(req.params.projectId, req.user, req.files);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.PROJECT_DELIVERABLES_ADDED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 200, "Deliverables uploaded successfully", { project });
 });
 
@@ -80,6 +158,13 @@ export const addDeliverables = asyncHandler(async (req, res) => {
 
 export const addMilestone = asyncHandler(async (req, res) => {
   const project = await projectService.addMilestone(req.params.projectId, req.user, req.body);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.MILESTONE_ADDED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.projectId,
+    req,
+  });
   return sendResponse(res, 201, "Milestone created successfully", { project });
 });
 
@@ -90,11 +175,25 @@ export const updateMilestone = asyncHandler(async (req, res) => {
     req.body,
     req.user
   );
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.MILESTONE_UPDATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.milestoneId,
+    req,
+  });
   return sendResponse(res, 200, "Milestone updated successfully", { project });
 });
 
 export const deleteMilestone = asyncHandler(async (req, res) => {
   const project = await projectService.deleteMilestone(req.params.projectId, req.params.milestoneId, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.MILESTONE_DELETED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.milestoneId,
+    req,
+  });
   return sendResponse(res, 200, "Milestone deleted successfully", { project });
 });
 
@@ -105,11 +204,25 @@ export const updateMilestoneProgress = asyncHandler(async (req, res) => {
     req.user,
     req.body.progress
   );
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.MILESTONE_PROGRESS_UPDATED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.milestoneId,
+    req,
+  });
   return sendResponse(res, 200, "Milestone progress updated successfully", { project });
 });
 
 export const completeMilestone = asyncHandler(async (req, res) => {
   const project = await projectService.completeMilestone(req.params.projectId, req.params.milestoneId, req.user);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.MILESTONE_COMPLETED,
+    module: ACTIVITY_MODULE.PROJECT,
+    resourceId: req.params.milestoneId,
+    req,
+  });
   return sendResponse(res, 200, "Milestone marked as complete", { project });
 });
 

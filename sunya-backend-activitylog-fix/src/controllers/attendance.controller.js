@@ -2,10 +2,20 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/ApiResponse.js";
 import * as attendanceService from "../services/attendance.service.js";
 import { Attendance } from "../models/Attendance.model.js";
+import { ACTIVITY_MODULE, ACTIVITY_ACTION } from "../utils/constants.js";
+import { logActivity } from "../services/activityLog.service.js";
 
 export const clockIn = asyncHandler(async (req, res) => {
   const record = await attendanceService.clockIn(req.user._id, {
     isRemote: req.body.isRemote,
+  });
+
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.CLOCK_IN,
+    module: ACTIVITY_MODULE.ATTENDANCE,
+    resourceId: record._id,
+    req,
   });
 
   return sendResponse(res, 200, "Clocked in successfully", { attendance: record });
@@ -13,6 +23,14 @@ export const clockIn = asyncHandler(async (req, res) => {
 
 export const clockOut = asyncHandler(async (req, res) => {
   const record = await attendanceService.clockOut(req.user._id);
+
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.CLOCK_OUT,
+    module: ACTIVITY_MODULE.ATTENDANCE,
+    resourceId: record._id,
+    req,
+  });
 
   return sendResponse(res, 200, "Clocked out successfully", { attendance: record });
 });
@@ -121,16 +139,37 @@ export const listAttendance = asyncHandler(async (req, res) => {
 // ------------------ Admin/Manager: manual attendance management ------------------
 export const createManualAttendance = asyncHandler(async (req, res) => {
   const record = await attendanceService.createManualAttendance(req.body);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.ATTENDANCE_CREATED,
+    module: ACTIVITY_MODULE.ATTENDANCE,
+    resourceId: record._id,
+    req,
+  });
   return sendResponse(res, 201, "Manual attendance record saved", { attendance: record });
 });
 
 export const updateAttendance = asyncHandler(async (req, res) => {
   const record = await attendanceService.updateAttendanceRecord(req.params.attendanceId, req.body);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.ATTENDANCE_UPDATED,
+    module: ACTIVITY_MODULE.ATTENDANCE,
+    resourceId: req.params.attendanceId,
+    req,
+  });
   return sendResponse(res, 200, "Attendance record updated", { attendance: record });
 });
 
 export const deleteAttendance = asyncHandler(async (req, res) => {
   await attendanceService.deleteAttendanceRecord(req.params.attendanceId);
+  await logActivity({
+    user: req.user._id,
+    action: ACTIVITY_ACTION.ATTENDANCE_DELETED,
+    module: ACTIVITY_MODULE.ATTENDANCE,
+    resourceId: req.params.attendanceId,
+    req,
+  });
   return sendResponse(res, 200, "Attendance record deleted", null);
 });
 
