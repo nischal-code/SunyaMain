@@ -20,7 +20,7 @@ const AuthCard = ({ title, subtitle, children, footer }) => {
         {/* Brand */}
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600 text-lg font-bold text-white shadow-sm">
-            S
+            <img src="/logo.svg" alt="logo"/>
           </div>
           <span className="text-sm font-semibold tracking-wide text-gray-500">
             SUNYA
